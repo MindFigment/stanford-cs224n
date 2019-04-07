@@ -30,6 +30,10 @@ def pad_sents(sents, pad_token):
 
     ### YOUR CODE HERE (~6 Lines)
 
+    lens = [len(sent) for sent in sents]
+    max_len = max(lens)
+    sents_padded = [sent + (pad_token * max_len - lens[i]) for i, sent in enumerate(sents)]
+
 
     ### END YOUR CODE
 
@@ -75,4 +79,3 @@ def batch_iter(data, batch_size, shuffle=False):
         tgt_sents = [e[1] for e in examples]
 
         yield src_sents, tgt_sents
-
