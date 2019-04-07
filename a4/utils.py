@@ -32,7 +32,7 @@ def pad_sents(sents, pad_token):
 
     lens = [len(sent) for sent in sents]
     max_len = max(lens)
-    sents_padded = [sent + (pad_token * max_len - lens[i]) for i, sent in enumerate(sents)]
+    sents_padded = [sent + ([pad_token] * (max_len - lens[i])) for i, sent in enumerate(sents)]
 
 
     ### END YOUR CODE
