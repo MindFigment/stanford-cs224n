@@ -80,7 +80,7 @@ class NMT(nn.Module):
         self.att_projection = nn.Linear(2 * hidden_size, hidden_size, bias=False)
         self.combined_output_projection = nn.Linear(3 * hidden_size, hidden_size, bias=False) # concatenate attention output (2 * hidde__size, 1) with decoder hidden state (hidden_size, 1)
         self.target_vocab_projection = nn.Linear(hidden_size, len(vocab.tgt)) 
-        self.dropout = nn.Dropout(dropout_rate)
+        self.dropout = nn.Dropout(self.dropout_rate)
 
         ### END YOUR CODE
 
@@ -259,10 +259,10 @@ class NMT(nn.Module):
         # 2
         Y = self.model_embeddings.target(target_padded)
         # 3
-        for Y_t in torch.split(Y, 1):
+        for Y_t in torch.split(Y, 1, dim=0):
             Y_t = torch.squeeze(Y_t, dim=0)
             Ybar_t = torch.cat((Y_t, o_prev), dim=1)
-            dec_state, o_t, e_t = self.step(Ybar_t, dec_state, enc_hiddens, enc_hiddens_proj, enc_masks)
+            dec_state, o_t, _ = self.step(Ybar_t, dec_state, enc_hiddens, enc_hiddens_proj, enc_masks)
             combined_outputs.append(o_t)
             o_prev = o_t
         # 4,
@@ -330,7 +330,7 @@ class NMT(nn.Module):
         # 2 
         (dec_hidden, dec_cell) = dec_state
         # 3
-        e_t = torch.squeeze(torch.bmm(enc_hiddens_proj, torch.unsqueeze(dec_hidden, 2)))
+        e_t = torch.squeeze(torch.bmm(enc_hiddens_proj, torch.unsqueeze(dec_hidden, 2)), 2)
         ### END YOUR CODE
 
         # Set e_t to -inf where enc_masks has 1
@@ -368,7 +368,7 @@ class NMT(nn.Module):
         # 1
         alpha_t = F.softmax(e_t, dim=1)
         # 2
-        a_t = torch.squeeze(torch.bmm(torch.unsqueeze(alpha_t, 1), enc_hiddens), 1)
+        a_t = torch.squeeze(torch.bmm(alpha_t.view((alpha_t.size(0), 1, alpha_t.size(1))), enc_hiddens), 1)
         # 3
         U_t = torch.cat((a_t, dec_hidden), dim=1)
         # 4
